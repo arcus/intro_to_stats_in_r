@@ -3,6 +3,8 @@ channels:
 dependencies:
   - r-base
   - r-Rcpp
-  - r-tidyverse
+  - r-readr
+  - r-dplyr
+  - r-ggplot2
   - r-stargazer
   - r-broom
