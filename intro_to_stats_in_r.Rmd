@@ -85,12 +85,14 @@ hyp2 <- glm( )
 # Examining model objects
 
 ```{r examine, eval=FALSE}
-# for each saved model object, run these four lines of code in the console, one at a time
+# for each saved model object, run these three lines of code in the console, one at a time
 # substituting in the name you saved in place of "model_obj"
 model_obj
 summary(model_obj)
-plot(model_obj)
 str(model_obj)
+
+# you can also try plot() on model objects to see what happens!
+plot(model_obj)
 ```
 
 You can use functions from the broom package to turn model objects into tidy tables, which makes them easier to work with.
