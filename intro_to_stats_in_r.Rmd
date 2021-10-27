@@ -1,0 +1,177 @@
+---
+title: "Untitled"
+author: "Rose Hartman"
+date: "10/14/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library("tidyverse")
+library("stargazer")
+library("broom")
+```
+
+# Data import and tidying
+
+NOTE: These are fake data. 
+
+```{r data_import}
+covid_testing <- read_csv("covid_testing.csv")
+
+# test that it read in correctly
+head(covid_testing)
+```
+
+Your tidying steps might be standardized in your lab, or you may be following the steps laid out in your pre-registration. Some data tidying will be the result of EDA (exploratory data analysis), when you discover anomolies 
+
+```{r data_tidying}
+# save a new version of the data for use in our models
+# only keep test results that are either positive or negative (no invalid tests), and only for pediatric patients (< 18 years old)
+
+model_data <- covid_testing %>% 
+  # filter to only keep rows where result is either positive or negative
+  filter(result %in% c("positive", "negative"),
+         # age is less than 18
+         age < 18) %>% 
+  # calculate a total turn around time (collected to received plus received to verified)
+  mutate(total_tat = col_rec_tat + rec_ver_tat) %>% 
+  # also turn categorical variables into factors
+  mutate(result = as.factor(result),
+         gender = as.factor(gender),
+         drive_thru_ind = factor(drive_thru_ind, levels = c(0,1), labels = c("no", "yes")),
+         clinic_name = as.factor(clinic_name),
+         demo_group = as.factor(demo_group)) %>% 
+  # filter out extreme outliers, with TAT greater than 30 days, or less than 1 hour
+  filter(total_tat < 30*24, 
+         total_tat > 1)
+```
+
+# Models
+
+## Hypothesis 1
+
+Turn around time is shorter for drive-thru tests.
+
+We can run this as a t-test, or as ordinary least squares regression (the models are equivalent).
+
+```{r t_test}
+hyp1_t <- t.test(total_tat ~ drive_thru_ind, data = model_data, var.equal = TRUE)
+```
+
+```{r ols_reg}
+hyp1_lm <- lm(total_tat ~ drive_thru_ind, data = model_data)
+```
+
+```{r other_ols_examples, eval = FALSE}
+?formula
+
+# turn around time predicted from pandemic day
+lm(total_tat ~ pan_day, data = model_data)
+
+# same model as above, but allow for the possibility of a quadratic trend in time 
+# see https://online.stat.psu.edu/stat462/node/158/
+lm(total_tat ~ poly(pan_day, degree = 2), data = model_data)
+
+# turn around time predicted from drive_thru, pan_day, and their interaction (i.e. perhaps the effect of pan_day is different for drive thru tests vs. non drive thru tests)
+# see https://education.arcus.chop.edu/understanding-interactions/ 
+lm(total_tat ~ drive_thru_ind*pan_day, data = model_data)
+```
+
+
+## Hypothesis 2
+
+Probability of a positive test result increases with age, within the pediatric population.
+
+Test with a logistic regression. Result (positive or negative) is the outcome, and age is the only predictor. 
+
+```{r logistic_reg}
+hyp2 <- glm(result ~ age, family = binomial, data = model_data)
+```
+
+# Examining model objects
+
+```{r examine, eval=FALSE}
+# for each saved model object, run these four lines of code in the console, one at a time
+# substituting in the name you saved in place of "model_obj"
+model_obj
+summary(model_obj)
+plot(model_obj)
+str(model_obj)
+```
+
+You can use functions from the broom package to turn model objects into tidy tables, which makes them easier to work with.
+
+```{r broom}
+tidy(hyp1_lm) # a table of coefficients for the model
+glance(hyp1_lm) # a table of model fit stats
+augment(hyp1_lm) # returns your original data, but with things like model estimates and residuals added on as new columns
+```
+
+```{r resid_plots}
+# a histogram of the model residuals
+hyp1_lm %>% 
+  augment() %>% 
+  ggplot(mapping = aes(x=.resid)) + 
+  geom_histogram()
+
+# examining residuals separately for different values of drive_thru_ind
+hyp1_lm %>% 
+  augment() %>% 
+  ggplot(mapping = aes(x=.resid)) + 
+  geom_histogram() + 
+  facet_wrap(~ drive_thru_ind)
+```
+
+
+
+# Presenting results
+
+## Model tables
+
+
+```{r, results='asis'}
+stargazer(hyp1_lm, type = "html")
+
+stargazer(hyp2, type = "html")
+```
+
+```{r, results='asis'}
+# defaults
+stargazer(hyp1_lm, hyp2, type = "html")
+
+# some tweaking. see ?stargazer for more options
+stargazer(hyp1_lm, hyp2, type = "html", 
+          dep.var.labels = c("Turn Around Time", "Prob(Positive)"), 
+          covariate.labels = c("Drive Thru", "Age"),
+          model.numbers = FALSE)
+```
+
+
+## Inline stats
+
+You can include R code and results within your text as well, which is particularly valuable when reporting stats. For example, let's say we want to report our logistic regression results. 
+
+```{r}
+z <- summary(hyp2)$coefficients[2,3]
+p <- summary(hyp2)$coefficients[2,4]
+```
+
+A logistic regression predicting the probability of a positive result from patients' age revealed a significant relationship between age and result, such that older pediatric patients were more likely to have positive test results (Z = `r round(z, 2)`, p = `r round(p, 3)`).
+
+
+```{r}
+# a function to print p values
+# 
+# It prints "p = " and the exact p value rounded to three decimal places,
+# except if p < .001, then it prints "p < .001"
+report_p <- function(p){
+  print_p <- ifelse(p < .001, "p < .001", 
+                    ifelse(p >= .001, paste("p =", round(p, 3)), NA))
+  return(print_p)
+}
+```
+
+A logistic regression predicting the probability of a positive result from patients' age revealed a significant relationship between age and result, such that older pediatric patients were more likely to have positive test results (Z = `r round(z, 2)`, `r report_p(p)`).
+
