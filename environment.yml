@@ -1,0 +1,7 @@
+  - conda-forge
+dependencies:
+  - r-base=3.6
+  - r-Rcpp
+  - r-tidyverse
+  - r-stargazer
+  - r-broom 
