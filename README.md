@@ -1,6 +1,9 @@
 # CHOPR 102: Intro to Stats in R
 Materials for the Intro to Stats in R talk for CHOP R User Group 2021-10-27
 
+## Link to the recording: 
+https://storage.googleapis.com/arcus-edu-r-user-group/CHOPR102_Intro_to_Stats_in_R.mp4
+
 ## Description:
 
 **Intro to Stats in R** (Rose Hartman, Arcus Education DBHi)
