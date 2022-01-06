@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>R for Clinical Data 102:Intro to Stats in R</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Rose Hartman" />
+    <meta name="date" content="2021-12-22" />
+    <script src="r103_stats_files/header-attrs/header-attrs.js"></script>
+    <link rel="stylesheet" href="chopr.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+
+class: title-slide bottom
+
+
+# R for Clinical Data 102:&lt;/br&gt;Intro to Stats in R
+
+.author[
+Rose Hartman, CHOP R User Group 2021-12-22
+]
+
+
+
+
+---
+
+class: chopr-slide
+
+# Join the CHOP R User Group
+
+!["CHOPR hex sticker logo."](media/chopr.png)
+.big[
+- Friendly help troubleshooting your R code
+- Announcements for upcoming talks, workshops, and conferences
+
+&lt;br&gt;
+
+.center[Link to join: https://bit.ly/chopRusers]
+]
+???
+Just a few announcements before we get started. 
+For anyone here today that isn't already part of the CHOP R User group, I strongly encourage you to join (it is also open to Penn folks). I can't overstate the importance of having a place to go to ask for help when you start coding. The CHOP R User group has more than 300 members from all departments. This is great place to network with other R users, get help with coding problems, and learn about new packages, webinars, and conferences. We also have semi-regular meetings and workshops, like this one. 
+
+---
+class: chopr-slide
+# Introducing... R Office Hours!
+
+!["CHOPR hex sticker logo."](media/chopr.png)
+
+--
+- Set up a meeting to get live help with your R code from our most experienced useRs
+- Office hours appointments can be one-on-one or open to the community
+--
+
+&lt;/br&gt;
+
+.center[Link to calendar: https://bit.ly/chopROfficeHours]
+
+--
+
+.center[We're looking for more volunteers to lead appointments! Get in touch: hartmanr1@chop.edu]
+
+???
+We're trying out a new thing, or rather, a new version of a thing that's been available in the past in a couple different formats. We're making regular office hours appointments available to get R help. 
+[click] We're offering two kinds of appointments: one-on-one, if you want individual help, or open appointments that will be more of a community conversation about whatever R questions people bring up that day. The open appointments can be particularly valuable to attend if you want to hear other people's questions about R but maybe don't have a project of your own that you're troubleshooting at the moment. 
+[click] We set up a calendar online where you can book an appointment. 
+[click] And if you like this idea and you're an experienced R user yourself, consider joining us to offer appointments! It's just whatever times work for you, so we can set up a schedule around whatever other work you've got going on. Reach out to me via email or slack for details.  
+
+
+---
+class: section-slide 
+
+# R for Clinical Data 102:&lt;/br&gt;Intro to Statistics in R
+
+
+???
+Okay! So this talk is a quick dip into some 102-level R. In other words, if you've had a little exposure to R before, such as through an Intro to R workshop, this is hopefully the right level for you now. 
+If you're completely brand new to R, first of all: Welcome! You may find it tricky to actively follow along with the code today since I'm going to skim over some of the initial steps, but go ahead and give it a try, or just listen and watch if that feels more like the right speed. 
+
+Our topic is doing statistics in R, basically my favorite thing. Please feel very free to stop me with questions, either by unmuting or in the chat – I've left plenty of extra time in the talk, so there's space for us to stop and talk about things. 
+
+---
+
+# What we're covering today
+
+--
+
+* How to run a few popular statistical tests in R (t-test, linear regression, logistics regression)
+
+--
+
+* A peak under the hood at how R saves model results, so you can do more with them
+
+--
+
+* How to report model results in an R Markdown document
+
+--
+
+* NOT teaching the full analysis in R pipeline -- we're glossing over importing data, tidying data, and visualizing data
+
+--
+
+* NOT teaching the statistical tests themselves
+
+---
+# How to follow along
+
+If you have R and RStudio installed already, download a zipped folder of the files you need here: 
+.small[https://github.com/arcus/intro_to_stats_in_r/raw/main/chopr_files.zip] 
+
+.center[OR]
+
+Use the following link to open an instance of RStudio in your browser. This may take a minute…
+.small[https://binder.pangeo.io/v2/gh/arcus/intro_to_stats_in_r/main?urlpath=rstudio]  
+
+???
+I built the materials for this talk today with hands on practice in mind, so I encourage you to follow along with the code on your own machine. There are two ways for you to do this. If you already have R and RStudio installed, then you can use the first link to just download the files you'll need for today's talk and you'll be able to run them on your own machine. 
+If you don't have RStudio installed, or just don't feel like running stuff locally, you can use the second link to open an instance of RStudio in your browser. It may take a minute to load, so just go ahead and click it then you can ignore that window while it works. 
+I'll pause here to give you a chance to get this stuff set up, and I can answer any questions you may have already. If you have trouble getting it to work, please do let us know in the chat and either I or a friendly onlooker may be able to help you. 
+Now I'll just go over a couple pieces of overview to help us get oriented.
+
+---
+
+# The Data Analysis Pipeline
+
+&lt;/br&gt;
+
+&lt;img src="media/r4ds.png" alt="Visualization of the data analysis pipeline, starting with Import on the left, then Tidy. From Tidy there is an arrow to Transform, which is in a loop going to Visualise and then Model and back to Transform. The loop is in a box labeled Understand. After the Understand box there is an arrow to Communicate. The entire pipeline is in a box labeled Program." width="100%"/&gt; 
+
+.footnote[ From R for Data Science (https://r4ds.had.co.nz/introduction.html)
+]
+
+???
+This diagram may look familiar; it's from the popular R for Data Science book, available for free online. It's a graphical representation of the typical data science workflow, starting with importing your data into your analysis environment (in this case, into R), then tidying your data, then a cycle of visualizing, transforming, and modeling, and finally communicating your findings.
+
+---
+# The Data Analysis Pipeline
+
+&lt;/br&gt;
+
+&lt;img src="media/r4ds_model_highlight.png" alt="Visualization of the data analysis pipeline again, but with a pink box highlighting Model." width="100%"/&gt; 
+
+.footnote[From R for Data Science (https://r4ds.had.co.nz/introduction.html)]
+
+
+???
+Today, we're going to zoom in on the modeling piece and talk about running stats in R.  
+Now, also I want to emphasize that, in the interest of time, I'm going to breeze through the importing and tidying steps, so we can focus on modeling. But in a real data science project, those steps are usually neither quick nor easy. So if you feel lost and confused as I whip through the importing and tidying, just know that's a very healthy reaction, and you're not alone. For right now, just run the code even if you don't understand it, and I am super happy to circle back and take questions about those steps at the end. 
+
+---
+class: small-header 
+# Anatomy of an R Markdown Document
+
+&lt;/br&gt;
+
+&lt;img src="media/anatomy_rmd.png" alt="Screenshot showing the basic structure of an R Markdown document: Header at the top, then Text (with marks), and code chunks." width="100%"/&gt; 
+
+???
+We'll be working in an R Markdown document today. It's a super handy way to include narrative text, code, and output all in the same file, something that is especially powerful when you're running statistical models. If you've seen presentations on R Markdown before and thought to yourself, "Okay fine, but I don't see why this is so much better than having your code + output in one place and your writeup somewhere else" perhaps this material today will convince you. 
+
+Recall that an R Markdown document has 3 different types of building blocks, the header, text, and code chunks.
+
+---
+# The data
+
+
+```r
+library("tidyverse")
+covid_testing &lt;- read_csv("data/covid_testing.csv")
+```
+
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; mrn &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; first_name &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; last_name &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; gender &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; pan_day &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; test_id &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; clinic_name &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; result &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; demo_group &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; age &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; drive_thru_ind &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; ct_value &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; orderset &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; payor_group &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; patient_class &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 5001412 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; jhezane &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; westerling &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; female &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; covid &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; inpatient ward a &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; negative &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; patient &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 45 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; government &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; inpatient &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 5000533 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; penny &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; targaryen &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; female &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; covid &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; clinical lab &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; negative &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; patient &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 45 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; commercial &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; not applicable &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 5009134 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; grunt &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; rivers &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; male &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; covid &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; clinical lab &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; negative &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; patient &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 45 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; NA &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 5008518 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; melisandre &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; swyft &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; female &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; covid &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; clinical lab &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; negative &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; patient &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 45 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; NA &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 5008967 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; rolley &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; karstark &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; male &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; covid &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; emergency dept &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; negative &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; patient &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 45 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; government &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; emergency &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 5011048 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; megga &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; karstark &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; female &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; covid &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; oncology day hosp &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; negative &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; patient &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 45 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; commercial &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; recurring outpatient &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+???
+This is the last bit of overview before we dive in. It's a sample of the data we'll be looking at today. Each row represents a single COVID19 lab test that was run at CHOP. This is actually a completely synthetic dataset in which none of the entries are actual patient data, but it's modeled to represent the underlying pattern of testing that was done at CHOP since the beginning of the pandemic. If you attended the R for Clinical Data workshop last week, these are the same fake data we used for that, so this may look familiar. 
+If you downloaded the materials for this talk or opened the cloud link, you should have the covid_testing.csv data file ready to go. To import it into R, we'll use the read_csv function, which is available in the tidyverse package. If you run these two lines of code, that should read the data file in and save it as covid_testing. 
+To check that it read in correctly, run head(covid_testing) and you should see it print out the first five rows of the data. I'll do that now as well, so you can see. 
+&gt;&gt; Live code: Pause to check that folks got RStudio up and running, then run the code chunks up until # Models. 
+
+---
+class: section-slide
+
+# Running the models
+
+---
+# The models
+
+### Hypothesis 1
+Turn around time is shorter for drive-thru tests vs. non drive-thru tests.
+
+### Hypothesis 2
+The probability of a positive result increases with age, within the pediatric population.
+
+???
+Quick reminder that these are fake data, so we're not learning anything about covid today, or about CHOP's covid testing procedures. This is all made-up. 
+Similarly, these hypotheses may not be reasonable, or even particularly interesting – I just picked these hypotheses to be able to demonstrate a couple different kinds of statistical tests one might want to run. 
+
+---
+# The models
+
+&lt;/br&gt;
+
+### Hypothesis 1
+Turn around time is shorter for drive-thru tests vs. non drive-thru tests.
+
+???
+So let's take these one at a time and think about what statistical tests we might run. For #1, we have two variables we're looking at, TAT and whether or not the test was done at a drive thru. You haven't had a chance to really look at the data yet, but I can tell you TAT is a continuous variable, measured in hours, from the time the test was taken until the results came in. Drive thru is a binary variable (yes or no) for each test. Does anyone have a suggestion for a statistical test for this hypothesis? Pop it in the chat. 
+
+---
+# The models
+
+&lt;/br&gt;
+
+### Hypothesis 2
+The probability of a positive result increases with age, within the pediatric population.
+
+???
+Okay, hypothesis two is a little more interesting. We are talking about just two variables again, but instead of TAT and whether or not it was a drive thru test, we're talking about the patient's age and whether the test came back positive or negative. The way the hypothesis is worded here, our outcome of interest is the probability of a positive test, and our predictor is age. Does anyone have a suggestion for a statistical test for this hypothesis?
+
+---
+layout: true
+# Statistical models in R
+&lt;br&gt;
+
+* Formula specifying your outcome(s) and predictor(s)
+* R function to run the kind of statistical test you need
+* Data you want to test, usually a dataframe
+* Additional arguments, specific to this R function
+* The output of the R function will be a model object
+
+&lt;br&gt;
+
+---
+
+
+```r
+ model_obj &lt;- test(outcome ~ predictors, data, other_arguments)
+```
+
+???
+This is an overview of how most statistical tests are written in R. This is a general pattern that you'll see repeated over and over for lots of different kinds of statistical tests. 
+
+---
+class: emphasize-1
+
+
+```r
+ model_obj &lt;- test(`outcome ~ predictors`, data, other_arguments)
+```
+
+???
+The most important piece is the formula specifying your outcome(s) and predictor(s). This same formula structure is used throughout R for a huge variety of statistical tests, so you'll see it again and again. Outcome variable(s) ~ predictor variable(s). 
+
+---
+class: emphasize-2
+
+
+```r
+ model_obj &lt;- `test`(outcome ~ predictors, data, other_arguments)
+```
+
+???
+What I've written here just as "test" will be the name of the R function to run the kind of statistical model you're looking for. For example, you would use a function called "t.test" to run t-tests, and you'd used one called "lm" which is short for "linear model" to run linear models like simple regression. 
+
+---
+class: emphasize-3
+
+
+```r
+ model_obj &lt;- test(outcome ~ predictors, `data`, other_arguments)
+```
+
+???
+After the formula, you'll typically put in the name of your data frame, so R knows which data to run the model on.
+
+---
+class: emphasize-4
+
+
+```r
+ model_obj &lt;- test(outcome ~ predictors, data, `other_arguments`)
+```
+
+???
+And for many tests, there will be one or more additional arguments here that are specific to that kind of test. 
+
+---
+class: emphasize-5
+
+
+```r
+ `model_obj` &lt;- test(outcome ~ predictors, data, other_arguments)
+```
+
+???
+When you run a model in R, you will almost always want to save the output to an object so you can do things with it. You do that by using that arrow "gets" to assign the output of the function to any name you like. Here I just wrote "model_obj" but you can name it whatever makes sense to you (and you'll probably want to pick something more informative than model_obj). 
+
+---
+layout: false
+# Running a t-test in R
+
+&lt;br&gt;
+
+### Hypothesis 1
+Turn around time is shorter for drive-thru tests vs. non drive-thru tests.
+
+--
+
+
+```r
+hyp1_t &lt;- t.test( __ ~ __ , data = model_data, __ )
+```
+
+???
+So let's take a look at how we would run our t-test in R.
+[click] I already told you there's a function called "t.test" so that's the one we'll use here. Our data frame is called model_data, and I've decided to save the results as hyp1_t since this is our t-test for hypothesis 1, but as I said you can name it whatever makes sense to you. 
+What should we put in as the outcome and predictor variables?
+And what additional arguments might we need?
+
+&gt;&gt; Go to live coding, ?t.test
+Be sure to highlight Details section of help docs for statistical tests. 
+
+---
+# Running a t-test in R
+
+&lt;br&gt;
+
+### Hypothesis 1
+Turn around time is shorter for drive-thru tests vs. non drive-thru tests.
+
+
+
+```r
+hyp1_t &lt;- t.test(total_tat ~ drive_thru_ind, 
+                 data = model_data, 
+                 var.equal = TRUE)
+```
+
+???
+So here's the code we would use to run this t-test, then. 
+
+---
+# Running a regression in R
+&lt;br&gt;
+
+### Hypothesis 1
+Turn around time is shorter for drive-thru tests vs. non drive-thru tests.
+
+--
+
+
+```r
+hyp1_t &lt;- t.test(total_tat ~ drive_thru_ind, 
+                 data = model_data, 
+                 var.equal = TRUE)
+```
+
+--
+
+
+```r
+hyp1_lm &lt;- lm(total_tat ~ drive_thru_ind, 
+              data = model_data)
+```
+
+???
+So we can actually run the exact same model as a linear regression as well. A lot of people don't realize this, but many common statistical tests are actually mathematically equivalent under the hood. Running a linear regression with one binary predictor variable will give you the exact same results as running it as a t-test. And that's not an R thing, you can test that in any statistical software you like. 
+Here, it gives us a handy excuse to take a look at another stats function in R! So let's do it. The function is "lm" which is short for linear model. This one is a powerhouse – you can use it for everything from t-tests to multivariate multiple regression. It can handle one or more continuous outcome variables, and one or more predictors, which can be continuous, categorical, or a mix of the two. 
+So what will our code look like? 
+Recall, here's our t-test [click] for the same hypothesis. The function now will be "lm" instead of "t.test" but a lot of this will actually be the same. Our outcome is still TAT, and our predictor is still drive_thru, so the formula doesn't change, and we'll be using the same dataframe. What about that var.equal argument? That one was specific to the t-test function. 
+Let's pull up the help documentation for lm. 
+
+&gt;&gt; Live coding, ?lm
+
+[click] So this is what we end up with for our regression function.
+
+---
+class: small-header 
+# Running a logistic regression in R
+
+&lt;br&gt;
+### Hypothesis 2
+The probability of a positive result increases with age, within the pediatric population.
+
+--
+
+
+```r
+hyp2 &lt;- glm(result ~ age, 
+            data = model_data, 
+            family = binomial)
+```
+
+???
+Just like R has one powerhouse function to run any kind of regression model, lm, it has another powerhouse function to do any generalized linear model, or glm. Briefly, you use a generalized linear model when you would like to run a regression, but your outcome variable is not continuous. So you apply a linking function to the model, which effectively transforms your outcome behind the scenes so that it acts like a normal continuous outcome and a regression model will work again. We call these kinds of models based on the link function used. So if you use a probit linking function, you would call it probit regression. If you use a Poisson linking function, that's Poisson regression. If you use a logit linking function, that's logistic regression. The correct linking function to use depends on the nature of your outcome variable. For a binary outcome, you generally want logistic regression. 
+So the function we'll use is called "glm", short for "generalized linear model". It's the same function we would use for any generalized linear model, so we'll need to tell it which linking function we need in the additional arguments. Just as with our other tests, we'll put in a model formula.  Taking a look at the data again, what will the outcome and predictor be here? If you have a guess for the correct formula, put it in the chat. 
+Now to figure out how to specify that we want a logistic link, we'll need to pull up the help documentation. 
+
+&gt;&gt; ?glm, ?family
+
+[click] So here's our logistic regression code. 
+---
+class: your-turn
+
+# Knowledge check <svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:#36BFED;overflow:visible;position:relative;"><path d="M504 256c0 136.967-111.033 248-248 248S8 392.967 8 256 119.033 8 256 8s248 111.033 248 248zM227.314 387.314l184-184c6.248-6.248 6.248-16.379 0-22.627l-22.627-22.627c-6.248-6.249-16.379-6.249-22.628 0L216 308.118l-70.059-70.059c-6.248-6.248-16.379-6.248-22.628 0l-22.627 22.627c-6.248 6.248-6.248 16.379 0 22.627l104 104c6.249 6.249 16.379 6.249 22.628.001z"/></svg>
+
+.center[.big[How would you run a linear regression in R predicting total turn around time (total_tat) from pandemic day (pan_day)? 
+Type the model formula in the chat.]]
+
+&lt;br&gt;
+
+--
+
+
+```r
+lm(total_tat ~ pand_day, data = model_data)
+```
+
+???
+Now before we move on, I just want to do a quick knowledge check here about these model formulas. So, how would you…
+Note that I put a few more examples of different kinds of model formulas in the "solutions" file, so you can take a look at those later as well.
+Great, so let's go to RStudio and run these models.
+
+&gt;&gt; Run all three models.
+
+---
+class: section-slide
+
+# Examining model objects
+
+???
+Now we've got three model objects saved in R, from a t-test, a linear model, and a logistic regression. Let's see what we can do with them. 
+
+---
+layout: true
+
+# What we'll try
+
+&lt;br&gt;
+
+* print a basic summary of the model
+* get a (usually) nicer printed summary
+* see everything in the model object, its full structure
+
+&lt;br&gt;
+
+---
+class: emphasize-1
+
+
+```r
+*model_obj
+summary(model_obj)
+str(model_obj) 
+```
+
+---
+class: emphasize-2
+
+
+```r
+model_obj 
+*summary(model_obj)
+str(model_obj) 
+```
+
+---
+class: emphasize-3
+
+
+```r
+model_obj
+summary(model_obj)
+*str(model_obj)
+```
+
+???
+&gt;&gt; live code each of these three commands on each of the saved model objects
+&gt;&gt; then show use of broom functions tidy, glance, and augment
+
+---
+class: section-slide
+layout: false
+
+# Presenting model results
+
+---
+# The Data Analysis Pipeline
+
+&lt;/br&gt;
+
+&lt;img src="media/r4ds_communicate_highlight.png" alt="Visualization of the data analysis pipeline again, but with a pink box highlighting Communicate." width="100%"/&gt; 
+
+.footnote[ From R for Data Science (https://r4ds.had.co.nz/introduction.html)
+]
+
+???
+One of the best things about working in R and R Studio is the ability to go directly from your analysis output to more polished, professional communication output without having to leave R Studio or do any copy-pasting. 
+[click] So next we're going to talk about how to take your model output and make it something you could use in an article or presentation. 
+
+---
+layout: true
+
+# The output you actually need
+
+.pull-left[
+
+&lt;br&gt;
+
+&lt;img src="media/lm_model_summary.png" alt="Screenshot of the output produced by the summary function run on an lm object." width="100%"/&gt; 
+]
+
+---
+
+???
+So this is all well and good when you're just exploring model results yourself in R, but what about when you want to share your results?
+
+---
+.pull-down[
+&lt;h3 style="color:red;"&gt;NOT THIS&lt;/h3&gt;
+]
+
+???
+You are definitely not going to be able to use something like this as-is in a research paper or presentation. 
+
+---
+
+.pull-right[
+* Tables that print nicely, and let you control style choices so you can adapt as needed
+* Figures (not covered today)
+* Results reported "in line", woven into the narrative text you write
+]
+
+???
+Instead, you need tables that print nicely and look professional, and that give you enough control over their appearance so that you can adjust the style as needed, for example, for different journals. 
+You'll also want figures and data visualizations, which we're not covering today.
+There's also another way we report results that a lot of people don't think of right away. We include stats and calculated numbers in the text we write when we talk about statistical models. Those numbers are part of your output, and you can automate that workflow with R Markdown just as you can for tables and figures. 
+
+---
+layout: false
+# `stargazer`: beautiful tables from R output
+
+.pull-left[
+&lt;img src="media/stargazer1.png" alt="Screenshot of Table 1 from stargazer documentation, showing a table of summary statistics with clean, attractive formatting as it might appear in a journal." width="100%"/&gt;
+]
+.pull-right[
+&lt;img src="media/stargazer2.png" alt="Screenshot of Table 5 from stargazer documentation, showing a table of regression model results with clean, attractive formatting as it might appear in a journal." width="100%"/&gt;
+]
+ 
+.footnote[https://cran.r-project.org/web/packages/stargazer/vignettes/stargazer.pdf]
+
+???
+You can see here two example tables from the stargazer help documentation, linked at the bottom of the slide. Each of these tables it created with a single line of code. You send your data frame or model object to the stargazer function, and it handles all of the lovely formatting for you. 
+This is so important, because if you aren't able to generate these tables automatically, that probably means you have to copy-paste each individual value into something like MS Word, where you can build your tables manually. No matter how careful you are, that creates so much room for human error. It also means that if anything about your analysis changes, let's say you get some additional data and you want to re-run everything on the expanded dataset, you have to painstakingly re-copy-paste every value and re-double-check all your work. That can eat up an entire afternoon, and you've got better things to do with your time (like attending R User Group talks!). 
+So let's take a look at how it works. We'll go back to RStudio. 
+
+---
+class: section-slide
+
+# What else?
+
+---
+layout: true
+# Many more kinds of models
+
+* ANOVA
+* ANCOVA
+* MANOVA
+* mixed effects models
+* structural equation models
+* mediation / path analysis
+* factor analysis
+
+&lt;br&gt;
+
+---
+
+???
+We only talked about a few kinds of statistical models today, but a lot of what we discussed applies to many more types of models as well. For example...
+
+---
+class: emphasize-1, emphasize-2, emphasize-3
+
+
+```r
+lm()
+```
+
+???
+If you're looking to run an ANOVA model, or related models like an ANCOVA or MANOVA, you can do those all with the lm function, just like we talked about today. 
+---
+class: emphasize-4
+
+
+```r
+install.packages("lme4")
+```
+
+???
+If you want to run a mixed effects model, also called a hierarchical linear model (HLM), I recommend the lme4 package. 
+
+---
+class: emphasize-5, emphasize-6, emphasize-7
+
+
+```r
+install.packages("lavaan")
+```
+
+https://lavaan.ugent.be/ 
+
+???
+If you want to run structural equation models (SEM), mediation models or path analyses, or confirmatory factor analysis models, you can do those all with the lavaan package. 
+[click] The website for lavaan has a number of really excellent tutorials on it, so if you're interested in any of those approaches, that's a great resource. 
+
+---
+class: img-left-full, small-header
+layout: false
+# Many models at once
+
+&lt;img src="https://d33wubrfki0l68.cloudfront.net/b88ef926a004b0fce72b2526b0b5c4413666a4cb/24a30/cover.png" alt="Cover image from the book 'R for Data Science'."/&gt;
+
+&lt;br&gt;
+https://r4ds.had.co.nz/many-models.html
+
+&lt;br&gt;
+
+
+.right[&lt;img src="https://raw.githubusercontent.com/tidymodels/broom/main/man/figures/logo.png" alt="Screenshot of Table 1 from stargazer documentation, showing a table of summary statistics with clean, attractive formatting as it might appear in a journal." width="40%"/&gt;]
+https://broom.tidymodels.org/ 
+
+
+???
+Today we talked only about hypothesis testing, not about more exploratory approaches where you might have a large complex dataset and want to use modeling to dig around and uncover patterns. They do touch on those techniques in the R for Data Science book (available for free online), linked here. The approach they recommend uses the broom package we talked about briefly today – we only used it to convert individual model outputs to table formats, but it's also a powerful way to combine lots of model outputs into big summary tables that you can then do further analysis on. 
+
+---
+class: img-left-full, small-header
+# More ways to make beautiful tables
+
+&lt;img src="https://bookdown.org/yihui/rmarkdown-cookbook/images/cover.png" alt="Cover image from the book 'R Markdown Cookbook'."/&gt;
+
+* knitr::kable
+* kableExtra
+* flextable
+* huxtable
+* gt
+* formattable
+* DT
+* reactable
+* rhandsontable
+* pixiedust
+* xtable
+ 
+.footnote[https://bookdown.org/yihui/rmarkdown-cookbook/table-other.html]
+ 
+???
+There are really a lot of packages to help you make tables in R Markdown. I mostly included this list here just to impress you with how many options there are, so I won't actually go through them all. I do want to draw your attention to the first one on the list, though, the kable function from the knitr package, because that's sort of the default basic one. If you have RStudio on your computer, then you already have the knitr package installed, since it comes with RStudio. 
+I picked stargazer to highlight for this talk because in my opinion, it gives the best results the fastest for presenting statistical models. Most of these other packages are designed for presenting data tables, or summary tables, but not model results specifically. So stargazer is probably your best bet for the kinds of things we were doing today, but I certainly don't want to leave you with the impression that it's your only option for making nicely printed tables. 
+This link is to a chapter of the R Markdown Cookbook (available for free online) where they talk about options for producing tables. This book is an excellent resource in general, too, so take a look if you want to learn about more things you can do with R Markdown. 
+
+---
+class: section-slide
+
+# Thank you!
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightLines": true,
+"highlightStyle": "github",
+"highlightSpans": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
