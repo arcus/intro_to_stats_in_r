@@ -26,6 +26,10 @@ You may need the following: `install.packages("xaringan", "fontawesome")`
 
 ## Tips for translating from ppt to rmd
 
+### Name your rmd file index.rmd
+
+This will mean it knits to index.html, which GH will host easily on GH pages. 
+
 ### Accessibility
 
 Be sure to include informative alt text for every image. End alt text with punctuation (like a period), since that will make a screen reader read it more naturally. 
