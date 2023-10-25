@@ -228,7 +228,7 @@ img, video, iframe {
 
 .title-slide {
   background-color: var(--navy);
-  background-image: url(https://arcus-education-internal.s3.amazonaws.com/chopr/chopr.png);
+  background-image: url(https://storage.googleapis.com/chop-dbhi-arcus-education-website-assets/img/chopr.png);
   background-position: 97.5% 2.5%;
   background-size: 8cm;
 }
@@ -267,7 +267,7 @@ img, video, iframe {
   color: var(--navy);
   font-size: var(--header-h1-font-size);
   background-color: var(--white);
-  background-image: url(https://arcus-education-internal.s3.amazonaws.com/chopr/chopr.png);
+  background-image: url(https://storage.googleapis.com/chop-dbhi-arcus-education-website-assets/img/chopr.png);
   background-size: contain;
   background-repeat: no-repeat;
   background-position: right;
